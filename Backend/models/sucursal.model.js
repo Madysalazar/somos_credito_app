@@ -1,10 +1,29 @@
 const db = require('../config/db.config.js');
 const Sucursal = {};
-// Obtener todas las sucursales (alta y baja)
+
+// Obtener todas las sucursales
 Sucursal.getAll = (result) => {
   db.query("SELECT * FROM Sucursal", (err, res) => {
     if (err) result(err, null);
     else result(null, res);
+  });
+};
+
+// Buscar sucursal por nombre
+Sucursal.findByNombre = (nombre, result) => {
+  db.query("SELECT * FROM Sucursal WHERE nombre = ?", [nombre], (err, res) => {
+    if (err) {
+      console.error("❌ Error al buscar sucursal por nombre:", err);
+      result(err, null);
+      return;
+    }
+
+    // Si encuentra resultados
+    if (res.length > 0) {
+      result(null, res[0]);
+    } else {
+      result(null, null);
+    }
   });
 };
 
@@ -33,7 +52,7 @@ Sucursal.update = (id, data, result) => {
   });
 };
 
-// Dar de baja 
+// Cambiar estado
 Sucursal.updateEstado = (id, estado, result) => {
   db.query(
     "UPDATE Sucursal SET estado = ? WHERE idSucursal = ?",
@@ -45,5 +64,4 @@ Sucursal.updateEstado = (id, estado, result) => {
   );
 };
 
-module.exports = Sucursal;  
-
+module.exports = Sucursal;

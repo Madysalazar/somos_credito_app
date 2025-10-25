@@ -1,11 +1,12 @@
 const Sucursal = require("../models/Sucursal.model.js");
 
+// Obtener todas las sucursales
 exports.findAll = (req, res) => {
   Sucursal.getAll((err, data) => {
     if (err) {
       res.status(500).send({ message: err.message || "Error al obtener las sucursales." });
     } else {
-      res.send(data); // Devuelve todas las sucursales
+      res.send(data);
     }
   });
 };
@@ -13,8 +14,7 @@ exports.findAll = (req, res) => {
 // Crear una nueva sucursal
 exports.create = (req, res) => {
   if (!req.body) {
-   return res.status(400).send({ message: "El contenido no puede estar vacío" });
-    return;
+    return res.status(400).send({ message: "El contenido no puede estar vacío" });
   }
 
   const nuevaSucursal = {
@@ -24,12 +24,25 @@ exports.create = (req, res) => {
     estado: 1,
   };
 
-  Sucursal.create(nuevaSucursal, (err, data) => {
+  // 🔍 Validar si el nombre ya existe
+  Sucursal.findByNombre(nuevaSucursal.nombre, (err, existingSucursal) => {
     if (err) {
-      console.error("Error al crear sucursal:", err);
-      return res.status(500).send({ message: "Error al crear la sucursal" });
+      console.error("Error al verificar sucursal existente:", err);
+      return res.status(500).send({ message: "Error al verificar la sucursal" });
     }
-    res.send(data);
+
+    if (existingSucursal) {
+      return res.status(400).send({ message: "Ya existe una sucursal con ese nombre" });
+    }
+
+    // Crear nueva sucursal si no existe
+    Sucursal.create(nuevaSucursal, (err, data) => {
+      if (err) {
+        console.error("Error al crear sucursal:", err);
+        return res.status(500).send({ message: "Error al crear la sucursal" });
+      }
+      res.send(data);
+    });
   });
 };
 
@@ -46,7 +59,7 @@ exports.update = (req, res) => {
 // Cambiar estado (alta/baja)
 exports.cambiarEstado = (req, res) => {
   const id = req.params.id;
-  const nuevoEstado = req.body.estado; // 1 = alta, 0 = baja
+  const nuevoEstado = req.body.estado;
 
   Sucursal.updateEstado(id, nuevoEstado, (err, data) => {
     if (err) res.status(500).send({ message: "Error al cambiar estado" });
